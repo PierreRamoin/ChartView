@@ -43,24 +43,31 @@ public struct PieChartRow : View {
             ZStack{
                 ForEach(0..<self.slices.count){ i in
                     PieChartCell(rect: geometry.frame(in: .local), startDeg: self.slices[i].startDeg, endDeg: self.slices[i].endDeg, index: i, backgroundColor: self.backgroundColor,accentColor: self.accentColor)
-                        .scaleEffect(self.currentTouchedIndex == i ? 1.1 : 1)
-                        .animation(Animation.spring())
+                            .scaleEffect(self.currentTouchedIndex == i ? 1.1 : 1)
+                            .animation(Animation.spring())
                 }
             }
             .gesture(DragGesture()
                         .onChanged({ value in
-                            let rect = geometry.frame(in: .local)
-                            let isTouchInPie = isPointInCircle(point: value.location, circleRect: rect)
-                            if isTouchInPie {
-                                let touchDegree = degree(for: value.location, inCircleRect: rect)
-                                self.currentTouchedIndex = self.slices.firstIndex(where: { $0.startDeg < touchDegree && $0.endDeg > touchDegree }) ?? -1
-                            } else {
-                                self.currentTouchedIndex = -1
-                            }
+                            change(geometry: geometry, value: value.location)
                         })
                         .onEnded({ value in
                             self.currentTouchedIndex = -1
                         }))
+            .onHover { value in
+                change(geometry: geometry, value: NSEvent.mouseLocation)
+            }
+        }
+    }
+
+    private func change(geometry: GeometryProxy, value: CGPoint) {
+        let rect = geometry.frame(in: .local)
+        let isTouchInPie = isPointInCircle(point: value, circleRect: rect)
+        if isTouchInPie {
+            let touchDegree = degree(for: value, inCircleRect: rect)
+            self.currentTouchedIndex = self.slices.firstIndex(where: { $0.startDeg < touchDegree && $0.endDeg > touchDegree }) ?? -1
+        } else {
+            self.currentTouchedIndex = -1
         }
     }
 }
