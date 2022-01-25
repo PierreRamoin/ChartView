@@ -18,7 +18,6 @@ struct PieSlice: Identifiable {
 
 public struct PieChartCell: View {
     @State private var show: Bool = false
-    @State private var highlighted: Bool = false
     var rect: CGRect
     var radius: CGFloat {
         min(rect.width, rect.height) / 2
@@ -40,18 +39,11 @@ public struct PieChartCell: View {
                 .fill()
                 .foregroundColor(self.accentColor)
                 .overlay(path.stroke(self.backgroundColor, lineWidth: 4))
-                .scaleEffect(getScaleEffect())
+                .scaleEffect(show ? 1 : 0)
                 .animation(Animation.spring().delay(Double(self.index) * 0.04))
                 .onAppear() {
                     self.show = true
                 }
-    }
-
-    private func getScaleEffect() -> Double {
-        if !show {
-            return 0
-        }
-        return highlighted ? 1.1 : 1
     }
 }
 
