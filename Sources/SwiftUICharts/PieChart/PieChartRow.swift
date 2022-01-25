@@ -54,14 +54,17 @@ public struct PieChartRow : View {
                         .onEnded({ value in
                             self.currentTouchedIndex = -1
                         }))
-            .onHover { value in
-                change(geometry: geometry, value: NSEvent.mouseLocation)
+            .onHover { hover in
+                let frame = geometry.frame(in: .local)
+                let mouseLocation = NSEvent.mouseLocation
+                let point = CGPoint(x: mouseLocation.x - frame.origin.x, y: mouseLocation.y - frame.origin.y)
+                return change(geometry: geometry, value: mouseLocation)
             }
         }
     }
 
     private func change(geometry: GeometryProxy, value: CGPoint) {
-        let rect = geometry.frame(in: .local)
+        let rect = geometry.frame(in: .global)
         let isTouchInPie = isPointInCircle(point: value, circleRect: rect)
         if isTouchInPie {
             let touchDegree = degree(for: value, inCircleRect: rect)
