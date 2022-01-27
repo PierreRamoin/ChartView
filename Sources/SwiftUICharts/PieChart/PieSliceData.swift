@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 public struct PieSliceData {
     let label: String;

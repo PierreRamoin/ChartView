@@ -7,7 +7,9 @@
 //
 
 import SwiftUI
+#if os(macOS)
 import AppKit
+#endif
 
 public struct PieChartRow: View {
     var data: [PieSliceData]
@@ -16,7 +18,9 @@ public struct PieChartRow: View {
     var slices: [PieSlice] {
         var tempSlices: [PieSlice] = []
         var lastEndDeg: Double = 0
-        let maxValue = data.map { $0.value }.reduce(0, +)
+        let maxValue = data.map {
+            $0.value
+        }.reduce(0, +)
         for slice in data {
             let normalized: Double = Double(slice.value) / Double(maxValue)
             let startDeg = lastEndDeg
@@ -27,28 +31,40 @@ public struct PieChartRow: View {
         return tempSlices
     }
 
-    @Binding var showValue: Bool
-    @Binding var currentValue: Double
+    var showLabels: Bool
+    var showValue: Binding<Bool>?
+    var currentValue: Binding<Double>?
 
     @State private var highlighted = false
     @State private var currentTouchedIndex = -1 {
         didSet {
             if oldValue != currentTouchedIndex {
-                showValue = currentTouchedIndex != -1
-                currentValue = showValue ? slices[currentTouchedIndex].value : 0
+                showValue?.wrappedValue = currentTouchedIndex != -1
+                currentValue?.wrappedValue = (showValue?.wrappedValue ?? false) ? data[currentTouchedIndex].value : 0
             }
         }
+    }
+
+    public init(data: [PieSliceData], backgroundColor: Color, accentColor: Color, showLabels: Bool = false,
+                showValue: Binding<Bool>? = nil, currentValue: Binding<Double>? = nil) {
+        self.data = data
+        self.backgroundColor = backgroundColor
+        self.accentColor = accentColor
+        self.showLabels = showLabels
+        self.showValue = showValue
+        self.currentValue = currentValue
     }
 
     public var body: some View {
         GeometryReader { geometry in
             ZStack {
                 ForEach(0..<self.slices.count) { i in
-                    PieChartCell(label: data[i].label, rect: geometry.frame(in: .local), startDeg: self.slices[i].startDeg, endDeg: self.slices[i].endDeg, index: i, backgroundColor: self.backgroundColor, color: Color(self.data[i].color))
+                    PieChartCell(label: data[i].label, showLabel: showLabels, rect: geometry.frame(in: .local), startDeg: self.slices[i].startDeg, endDeg: self.slices[i].endDeg, index: i, backgroundColor: self.backgroundColor, color: Color(self.data[i].color))
                             .scaleEffect(self.currentTouchedIndex == i ? 1.1 : 1)
                             .animation(Animation.spring())
                 }
             }
+                    #if os(macOS)
                     .onAppear {
                         NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) {
                             if highlighted && $0.window != nil {
@@ -58,6 +74,8 @@ public struct PieChartRow: View {
                             return $0
                         }
                     }
+                    #endif
+
                     .gesture(DragGesture()
                             .onChanged({ value in
                                 setCurrentTouchedIndex(rect: geometry.frame(in: .local), value: value.location)

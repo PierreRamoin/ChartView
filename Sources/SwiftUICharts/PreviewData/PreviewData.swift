@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 class PreviewData {
     static func getPieSliceData() -> [PieSliceData] {

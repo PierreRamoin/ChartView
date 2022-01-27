@@ -67,6 +67,7 @@ public struct PieChartCell: View {
                     self.show = true
                 }
             Text(label)
+                    .animation(.none)
                     .position(getPointOnBisector(distanceFromCenter: 1.4 * radius))
         }
     }
