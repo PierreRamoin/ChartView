@@ -32,34 +32,37 @@ public struct PieChartRow: View {
     }
 
     var showLabels: Bool
-    var showValue: Binding<Bool>?
-    var currentValue: Binding<Double>?
+    var showValue: Bool
+    var valueFormat: String
+    var highlightedIdx: Binding<Int>?
 
     @State private var highlighted = false
     @State private var currentTouchedIndex = -1 {
         didSet {
             if oldValue != currentTouchedIndex {
-                showValue?.wrappedValue = currentTouchedIndex != -1
-                currentValue?.wrappedValue = (showValue?.wrappedValue ?? false) ? data[currentTouchedIndex].value : 0
+                highlightedIdx?.wrappedValue = currentTouchedIndex
             }
         }
     }
 
     public init(data: [PieSliceData], backgroundColor: Color, accentColor: Color, showLabels: Bool = false,
-                showValue: Binding<Bool>? = nil, currentValue: Binding<Double>? = nil) {
+                showValue: Bool = false,
+                valueFormat: String = "%.2f",
+                highlightedIdx: Binding<Int>? = nil) {
         self.data = data
         self.backgroundColor = backgroundColor
         self.accentColor = accentColor
         self.showLabels = showLabels
         self.showValue = showValue
-        self.currentValue = currentValue
+        self.valueFormat = valueFormat
+        self.highlightedIdx = highlightedIdx
     }
 
     public var body: some View {
         GeometryReader { geometry in
             ZStack {
                 ForEach(0..<self.slices.count) { i in
-                    PieChartCell(label: data[i].label, showLabel: showLabels, rect: geometry.frame(in: .local), startDeg: self.slices[i].startDeg, endDeg: self.slices[i].endDeg, index: i, backgroundColor: self.backgroundColor, color: Color(self.data[i].color))
+                    PieChartCell(data: data[i], showLabel: showLabels, showValue: showValue, valueFormat: valueFormat, rect: geometry.frame(in: .local), startDeg: self.slices[i].startDeg, endDeg: self.slices[i].endDeg, index: i, backgroundColor: self.backgroundColor)
                             .scaleEffect(self.currentTouchedIndex == i ? 1.1 : 1)
                             .animation(Animation.spring())
                 }
@@ -107,9 +110,9 @@ public struct PieChartRow: View {
 struct PieChartRow_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            PieChartRow(data: PreviewData.getPieSliceData(), backgroundColor: Color(red: 252.0 / 255.0, green: 236.0 / 255.0, blue: 234.0 / 255.0), accentColor: Color(red: 225.0 / 255.0, green: 97.0 / 255.0, blue: 76.0 / 255.0), showValue: Binding.constant(false), currentValue: Binding.constant(0))
+            PieChartRow(data: PreviewData.getPieSliceData(), backgroundColor: Color(red: 252.0 / 255.0, green: 236.0 / 255.0, blue: 234.0 / 255.0), accentColor: Color(red: 225.0 / 255.0, green: 97.0 / 255.0, blue: 76.0 / 255.0), showValue: false, highlightedIdx: Binding.constant(0))
                     .frame(width: 100, height: 100)
-            PieChartRow(data: [PreviewData.getPieSliceData()[0]], backgroundColor: Color(red: 252.0 / 255.0, green: 236.0 / 255.0, blue: 234.0 / 255.0), accentColor: Color(red: 225.0 / 255.0, green: 97.0 / 255.0, blue: 76.0 / 255.0), showValue: Binding.constant(false), currentValue: Binding.constant(0))
+            PieChartRow(data: [PreviewData.getPieSliceData()[0]], backgroundColor: Color(red: 252.0 / 255.0, green: 236.0 / 255.0, blue: 234.0 / 255.0), accentColor: Color(red: 225.0 / 255.0, green: 97.0 / 255.0, blue: 76.0 / 255.0), showValue: false, highlightedIdx: Binding.constant(0))
                     .frame(width: 100, height: 100)
         }
     }

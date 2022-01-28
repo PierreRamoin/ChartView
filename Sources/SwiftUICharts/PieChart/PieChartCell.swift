@@ -18,8 +18,10 @@ struct PieSlice: Identifiable {
 
 public struct PieChartCell: View {
     @State private var show: Bool = false
-    @State var label: String
+    @State var data: PieSliceData
     @State var showLabel = false
+    @State var showValue = false
+    @State var valueFormat: String
     var rect: CGRect
     var radius: CGFloat {
         min(rect.width, rect.height) / (showLabel ? 3 : 2)
@@ -44,31 +46,38 @@ public struct PieChartCell: View {
     }
     var index: Int
     var backgroundColor: Color
-    var color: Color
 
     public var body: some View {
         path
                 .fill()
-                .foregroundColor(self.color)
+                .foregroundColor(Color(data.color))
                 .overlay(path.stroke(self.backgroundColor, lineWidth: 1))
                 .scaleEffect(show ? 1 : 0)
                 .animation(Animation.spring().delay(Double(self.index) * 0.04))
                 .onAppear() {
                     self.show = true
                 }
-        if showLabel {
+        if showLabel || showValue {
             labelLine
-                .foregroundColor(.clear)
-                .overlay(labelLine.stroke(.white, lineWidth: 1))
+                    .foregroundColor(.clear)
+                    .overlay(labelLine.stroke(.white, lineWidth: 1))
 
-                .scaleEffect(show ? 1 : 0)
-                .animation(Animation.spring().delay(Double(self.index) * 0.04))
-                .onAppear() {
-                    self.show = true
+                    .scaleEffect(show ? 1 : 0)
+                    .animation(Animation.spring().delay(Double(self.index) * 0.04))
+                    .onAppear() {
+                        self.show = true
+                    }
+            VStack {
+                if showLabel {
+                    Text(data.label)
                 }
-            Text(label)
+                if showValue {
+                    Text(String(format: valueFormat, data.value))
+                }
+            }
                     .animation(.none)
-                    .position(getPointOnBisector(distanceFromCenter: 1.4 * radius))
+                    .position(getPointOnBisector(distanceFromCenter: 1.3 * radius + 15.0))
+
         }
     }
 
@@ -88,7 +97,7 @@ extension CGRect {
 struct PieChartCell_Previews: PreviewProvider {
     static var previews: some View {
         GeometryReader { geometry in
-            PieChartCell(label: "toto", rect: geometry.frame(in: .local), startDeg: 0.0, endDeg: 90.0, index: 0, backgroundColor: Color(red: 252.0 / 255.0, green: 236.0 / 255.0, blue: 234.0 / 255.0), color: Color(red: 225.0 / 255.0, green: 97.0 / 255.0, blue: 76.0 / 255.0))
+            PieChartCell(data: PreviewData.getPieSliceData()[0], showValue: true, valueFormat: "%.2f", rect: geometry.frame(in: .local), startDeg: 0.0, endDeg: 90.0, index: 0, backgroundColor: Color(red: 252.0 / 255.0, green: 236.0 / 255.0, blue: 234.0 / 255.0))
         }
 
     }
