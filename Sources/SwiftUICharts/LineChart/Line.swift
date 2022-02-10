@@ -16,7 +16,7 @@ public struct Line: View {
     @Binding var minDataValue: Double?
     @Binding var maxDataValue: Double?
     @State private var showFull: Bool = false
-    @State var showBackground: Bool = true
+    @State var showBackground: Bool = false
     var gradient: GradientColor = GradientColor(start: Colors.GradientPurple, end: Colors.GradientNeonBlue)
     var index:Int = 0
     let padding:CGFloat = 30
@@ -31,21 +31,20 @@ public struct Line: View {
         var min: Double?
         var max: Double?
         let points = self.data.onlyPoints()
-        if minDataValue != nil && maxDataValue != nil {
-            min = minDataValue!
-            max = maxDataValue!
-        }else if let minPoint = points.min(), let maxPoint = points.max(), minPoint != maxPoint {
+        if let minDataValue = minDataValue {
+            min = minDataValue
+        } else if let minPoint = points.min() {
             min = minPoint
-            max = maxPoint
-        }else {
-            return 0
         }
+
+        if let maxDataValue = maxDataValue {
+            max = maxDataValue
+        }else if let maxPoint = points.max() {
+            max = maxPoint
+        }
+
         if let min = min, let max = max, min != max {
-            if (min <= 0){
-                return (frame.size.height-padding) / CGFloat(max - min)
-            }else{
-                return (frame.size.height-padding) / CGFloat(max - min)
-            }
+            return (frame.size.height - padding) / CGFloat(max - min)
         }
         return 0
     }
@@ -57,7 +56,7 @@ public struct Line: View {
         let points = self.data.onlyPoints()
         return curvedLines ? Path.quadClosedCurvedPathWithPoints(points: points, step: CGPoint(x: stepWidth, y: stepHeight), globalOffset: minDataValue) : Path.closedLinePathWithPoints(points: points, step: CGPoint(x: stepWidth, y: stepHeight))
     }
-    
+
     public var body: some View {
         ZStack {
             if(self.showFull && self.showBackground){
@@ -88,12 +87,12 @@ public struct Line: View {
             }
         }
     }
-    
+
     func getClosestPointOnPath(touchLocation: CGPoint) -> CGPoint {
         let closest = self.path.point(to: touchLocation.x)
         return closest
     }
-    
+
 }
 
 struct Line_Previews: PreviewProvider {

@@ -12,7 +12,7 @@ import AppKit
 #endif
 
 public struct PieChartRow: View {
-    var data: [PieSliceData]
+    @State var data: [PieSliceData]
     var backgroundColor: Color
     var accentColor: Color
     var slices: [PieSlice] {
@@ -61,7 +61,7 @@ public struct PieChartRow: View {
     public var body: some View {
         GeometryReader { geometry in
             ZStack {
-                ForEach(0..<self.slices.count) { i in
+                ForEach(data.indices) { i in
                     PieChartCell(data: data[i], showLabel: showLabels, showValue: showValue, valueFormat: valueFormat, rect: geometry.frame(in: .local), startDeg: self.slices[i].startDeg, endDeg: self.slices[i].endDeg, index: i, backgroundColor: self.backgroundColor)
                             .scaleEffect(self.currentTouchedIndex == i ? 1.1 : 1)
                             .animation(Animation.spring())

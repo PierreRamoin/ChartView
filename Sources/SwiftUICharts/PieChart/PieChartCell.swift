@@ -24,7 +24,7 @@ public struct PieChartCell: View {
     @State var valueFormat: String
     var rect: CGRect
     var radius: CGFloat {
-        min(rect.width, rect.height) / (showLabel ? 3 : 2)
+        min(rect.width, rect.height) / (showLabel ? 3.5 : 2)
     }
     var bisector: Angle {
         Angle(degrees: (self.startDeg + self.endDeg) / 2)
@@ -76,7 +76,7 @@ public struct PieChartCell: View {
                 }
             }
                     .animation(.none)
-                    .position(getPointOnBisector(distanceFromCenter: 1.3 * radius + 15.0))
+                    .position(getPointOnBisector(distanceFromCenter: 1.3 * radius + 25.0))
 
         }
     }
