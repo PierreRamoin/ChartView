@@ -15,7 +15,8 @@ public struct LineView: View {
     public var style: ChartStyle
     public var darkModeStyle: ChartStyle
     public var valueSpecifier: String
-    public var legendSpecifier: String
+    public var legendFormatter: NumberFormatter
+    public var lineXOffset: CGFloat = 30
 
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     @State private var labels: [String]?
@@ -33,7 +34,7 @@ public struct LineView: View {
                 legend: String? = nil,
                 style: ChartStyle = Styles.lineChartStyleOne,
                 valueSpecifier: String? = "%.1f",
-                legendSpecifier: String? = "%.2f") {
+                legendFormatter: NumberFormatter? = nil) {
 
         self.data = ChartData(points: data)
         self._labels = State(initialValue: labels)
@@ -41,8 +42,15 @@ public struct LineView: View {
         self.legend = legend
         self.style = style
         self.valueSpecifier = valueSpecifier!
-        self.legendSpecifier = legendSpecifier!
         self.darkModeStyle = style
+
+        if legendFormatter == nil {
+            let legendFormatter = NumberFormatter()
+            legendFormatter.numberStyle = NumberFormatter.Style.decimal
+            self.legendFormatter = legendFormatter
+        } else {
+            self.legendFormatter = legendFormatter!
+        }
     }
 
     public var body: some View {
@@ -71,10 +79,12 @@ public struct LineView: View {
                                     hideHorizontalLines: self.$hideHorizontalLines,
                                     minDataValue: .constant(0),
                                     maxDataValue: .constant(nil),
-                                    specifier: legendSpecifier).transition(.opacity)
+                                    formatter: legendFormatter,
+                                    chartXOffset: lineXOffset
+                            ).transition(.opacity)
                         }
                         Line(data: self.data,
-                             frame: .constant(CGRect(x: 0, y: 0, width: reader.frame(in: .local).width - 30, height: reader.frame(in: .local).height)),
+                             frame: .constant(CGRect(x: 0, y: 0, width: reader.frame(in: .local).width - lineXOffset, height: reader.frame(in: .local).height)),
                              touchLocation: self.$indicatorLocation,
                              showIndicator: self.$hideHorizontalLines,
                              minDataValue: .constant(0),
@@ -82,7 +92,7 @@ public struct LineView: View {
                              showBackground: false,
                              gradient: self.style.gradientColor
                         )
-                        .offset(x: 30, y: 0)
+                        .offset(x: lineXOffset, y: 0)
                         .onAppear(){
                             self.showLegend = true
                         }
@@ -93,7 +103,7 @@ public struct LineView: View {
                     MagnifierRect(currentNumber: self.$currentDataNumber, valueSpecifier: self.valueSpecifier)
                         .opacity(self.opacity)
                         .offset(x: self.dragLocation.x - geometry.frame(in: .local).size.width/2, y: 36)
-                }
+                }.offset(y: title != nil ? 40 : 0)
                 .gesture(DragGesture()
                 .onChanged({ value in
                     self.dragLocation = value.location
@@ -128,7 +138,7 @@ public struct LineView: View {
 struct LineView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            LineView(data: [8,23,54,32,12,37,7,23,43], labels: [], title: "Full chart", style: Styles.lineChartStyleOne)
+            LineView(data: [8,23,54,32,12,37,7,23,43], labels: [], title: "Full chart", style: Styles.lineViewDarkMode)
 
             LineView(data: [282.502, 284.495, 283.51, 285.019, 285.197, 286.118, 288.737, 288.455, 289.391, 287.691, 285.878, 286.46, 286.252, 284.652, 284.129, 284.188], labels: [], title: "Full chart", style: Styles.lineChartStyleOne)
 
