@@ -23,6 +23,9 @@ public struct PieChartCell: View {
     @State var showValue = false
     @State var valueFormat: String
     var rect: CGRect
+    var center: CGPoint {
+        rect.mid
+    }
     var radius: CGFloat {
         min(rect.width, rect.height) / (showLabel ? 3.5 : 2)
     }
@@ -33,13 +36,15 @@ public struct PieChartCell: View {
     var endDeg: Double
     var path: Path {
         var path = Path()
-        path.addArc(center: rect.mid, radius: self.radius, startAngle: Angle(degrees: self.startDeg), endAngle: Angle(degrees: self.endDeg), clockwise: false)
-        path.addLine(to: rect.mid)
+        path.move(to: center)
+        path.addArc(center: center, radius: self.radius, startAngle: Angle(degrees: self.startDeg), endAngle: Angle(degrees: self.endDeg), clockwise: false)
+        path.addLine(to: center)
         path.closeSubpath()
         return path
     }
     var labelLine: Path {
         var path = Path()
+        path.move(to: center)
         path.move(to: getPointOnBisector(distanceFromCenter: radius))
         path.addLine(to: getPointOnBisector(distanceFromCenter: 1.3 * radius))
         return path
@@ -82,8 +87,8 @@ public struct PieChartCell: View {
     }
 
     private func getPointOnBisector(distanceFromCenter: Double) -> CGPoint {
-        CGPoint(x: Double(distanceFromCenter) * cos(bisector.radians) + rect.mid.x,
-                y: Double(distanceFromCenter) * sin(bisector.radians) + rect.mid.y)
+        CGPoint(x: Double(distanceFromCenter) * cos(bisector.radians) + center.x,
+                y: Double(distanceFromCenter) * sin(bisector.radians) + center.y)
     }
 }
 

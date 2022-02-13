@@ -37,6 +37,7 @@ public struct PieChartRow: View {
     var highlightedIdx: Binding<Int>?
 
     @State private var highlighted = false
+    @State private var lockedTouchedIndex = false
     @State private var currentTouchedIndex = -1 {
         didSet {
             if oldValue != currentTouchedIndex {
@@ -70,10 +71,18 @@ public struct PieChartRow: View {
                     #if os(macOS)
                     .onAppear {
                         NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) {
-                            if highlighted && $0.window != nil {
-                                let rectified = CGPoint(x: $0.locationInWindow.x, y: $0.window!.frame.size.height - $0.locationInWindow.y)
-                                setCurrentTouchedIndex(rect: geometry.frame(in: .global), value: rectified)
+                            if highlighted && $0.window != nil && !lockedTouchedIndex {
+                                setCurrentTouchedIndexOnNSEvent(event: $0, geometry: geometry)
                             }
+                            return $0
+                        }
+                        NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown]) {
+                            let oldLocation = currentTouchedIndex
+                            setCurrentTouchedIndexOnNSEvent(event: $0, geometry: geometry)
+                            if lockedTouchedIndex && currentTouchedIndex == oldLocation {
+                                currentTouchedIndex = -1
+                            }
+                            lockedTouchedIndex = (currentTouchedIndex != -1)
                             return $0
                         }
                     }
@@ -88,12 +97,19 @@ public struct PieChartRow: View {
                             }))
                     .onHover { hover in
                         highlighted = hover
-                        if !hover {
+                        if !hover && !lockedTouchedIndex {
                             currentTouchedIndex = -1
                         }
                     }
         }
     }
+
+    #if os(macOS)
+    private func setCurrentTouchedIndexOnNSEvent(event: NSEvent, geometry: GeometryProxy) {
+        let rectified = CGPoint(x: event.locationInWindow.x, y: event.window!.frame.size.height - event.locationInWindow.y)
+        setCurrentTouchedIndex(rect: geometry.frame(in: .global), value: rectified)
+    }
+    #endif
 
     private func setCurrentTouchedIndex(rect: CGRect, value: CGPoint) {
         let isTouchInPie = isPointInCircle(point: value, circleRect: rect)
